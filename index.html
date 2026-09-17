@@ -902,8 +902,19 @@ function serviciosDe(propId, cua) {
 }
 
 /* ── Jornadas: progreso y permisos ── */
+/** Conteo de items por estado: {hechas, posp, pend, total}. */
+function progresoJornada(j) {
+  var h = 0, p = 0, x = 0;
+  j.items.forEach(function (i) { if (i.estado === 'Hecho') h++; else if (i.estado === 'Pospuesto') p++; else x++; });
+  return { hechas: h, posp: p, pend: x, total: j.items.length };
+}
+
+/** Rango legible de fechas de la jornada (maneja jornadas que cruzan de día). */
+function rangoFechas(j) { if (j.fechaFin && j.fechaFin !== j.fecha) return fmtDiaFecha(j.fecha) + ' → termina ' + fmtDiaFecha(j.fechaFin); return fmtDiaFecha(j.fecha); }
+
 /** Roles sobre jornadas: ver = admin o operador de esa cuadrilla. */
 function puedeVerJornada(j) { return rolAdmin() || (esOperador() && j.cuadrilla === miCua()); }
+// ... (aquí sigue el resto de tus funciones de permisos)
 
 /** Editar = admin, o operador si la creó él mismo, es de su cuadrilla y NO es automática del sistema. */
 function puedeEditarJornada(j) {
