@@ -1487,7 +1487,7 @@ function renderApp() {
   if (estado.vista === 'propiedades') {
     poblarSelects();
     renderListado();
-  }   } else if (estado.vista === 'propiedad_form' && rolAdmin()) {
+  } else if (estado.vista === 'propiedad_form' && rolAdmin()) {
     if (typeof recalc === 'function') recalc();
     if (typeof filtrarCuadrillasForm === 'function' && $('pfCuaSearch')) filtrarCuadrillasForm();
   } else if (estado.vista === 'ruta_form') {
