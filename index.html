@@ -1371,12 +1371,12 @@ function verPropiedad(id, refVista, refParam) {
   cerrarMenu(); window.scrollTo(0, 0); renderApp();
 }
 function formPropiedad(id) {
-  if (!rolOro()) { toast('🔒 Solo Admin Oro puede crear o editar propiedades'); return; }
+  if (!rolAdmin()) { toast('🔒 Solo Admin Oro puede crear o editar propiedades'); return; }
   pushState(); estado.vista = 'propiedad_form'; estado.param = id || null; window.scrollTo(0, 0); renderApp();
 }
 function verCuadrilla(n) { pushState(); estado.vista = 'cuadrilla_detalle'; estado.param = n; cerrarMenu(); window.scrollTo(0, 0); renderApp(); }
 function formCuadrilla(n) {
-  if (!rolOro()) { toast('🔒 Solo Admin Oro puede crear o editar cuadrillas'); return; }
+  if (!rolAdmin()) { toast('🔒 Solo Admin Oro puede crear o editar cuadrillas'); return; }
   pushState(); estado.vista = 'cuadrilla_form'; estado.param = n || null; window.scrollTo(0, 0); renderApp();
 }
 function verRuta(id) { pushState(); estado.vista = 'ruta_detalle'; estado.param = id; cerrarMenu(); window.scrollTo(0, 0); renderApp(); }
@@ -1487,7 +1487,7 @@ function renderApp() {
   if (estado.vista === 'propiedades') {
     poblarSelects();
     renderListado();
-  } else if (estado.vista === 'propiedad_form' && rolOro()) {
+  }   } else if (estado.vista === 'propiedad_form' && rolAdmin()) {
     if (typeof recalc === 'function') recalc();
     if (typeof filtrarCuadrillasForm === 'function' && $('pfCuaSearch')) filtrarCuadrillasForm();
   } else if (estado.vista === 'ruta_form') {
@@ -2055,7 +2055,7 @@ function vistaPropiedades() {
     + crumb([{ t: 'Inicio', fn: "ir('dashboard')" }, { t: 'Propiedades' }])
     + '<div class="flex items-start justify-between gap-3 flex-wrap">'
     + '<div class="min-w-0"><h1 class="text-2xl lg:text-3xl font-extrabold">Propiedades</h1><p class="text-slate-500 text-sm mt-1">' + props.length + ' propiedades registradas</p></div>'
-    + (rolOro() ? '<button onclick="formPropiedad(null)" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-5 py-2.5 rounded-xl shadow transition active:scale-95 text-sm">＋ Nueva propiedad</button>' : '')
+    + (rolAdmin() ? '<button onclick="formPropiedad(null)" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-5 py-2.5 rounded-xl shadow transition active:scale-95 text-sm">＋ Nueva propiedad</button>' : '')
     + '</div>'
     + '<div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">'
     + '<input id="fQ" value="' + esc(f.q) + '" oninput="estado.filtros.q=this.value;renderListado()" placeholder="🔍 Buscar por nombre o ID…" class="w-full min-w-0 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-500 transition">'
@@ -2119,7 +2119,7 @@ function renderListado() {
 /** Tarjeta resumen de propiedad (usada en listado y calendario). */
 function propCard(p) {
   // ♻️ Eliminada variable muerta `fechaCal` (se calculaba y nunca se usaba)
-  var asignBtn = rolOro()
+  var asignBtn = rolAdmin()
     ? '<button onclick="event.stopPropagation();abrirAsignarCua(\'' + p.id + '\')" title="Asignar/Cambiar cuadrilla" class="text-slate-300 hover:text-sky-600 transition text-sm font-bold p-1 rounded-lg hover:bg-slate-100">⚙️</button>'
     : '';
 
@@ -2223,7 +2223,7 @@ function vistaPropDetalle() {
     + '<div class="flex items-center gap-2 flex-wrap">' + chipServ(p.servicio) + chipCuad(p.cuadrilla, true) + asignBtn + (codigos(p) ? '<span class="text-xs text-slate-500">' + codigos(p) + '</span>' : '') + '</div>'
     + '<div class="flex flex-wrap gap-2">'
     + (puedeOp ? '<button onclick="abrirServModal(\'' + p.id + '\',null)" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold px-4 py-2.5 rounded-xl shadow transition active:scale-95">✅ Registrar servicio</button>' : '')
-    + (rolOro() ? '<button onclick="formPropiedad(\'' + p.id + '\')" class="border border-slate-200 hover:border-sky-400 text-sm font-bold px-4 py-2.5 rounded-xl transition">✏️ Editar</button>'
+    + (rolAdmin() ? '<button onclick="formPropiedad(\'' + p.id + '\')" class="border border-slate-200 hover:border-sky-400 text-sm font-bold px-4 py-2.5 rounded-xl transition">✏️ Editar</button>'
       + '<button onclick="togglePropEstado(\'' + p.id + '\')" class="border border-slate-200 hover:border-amber-400 text-sm font-bold px-4 py-2.5 rounded-xl transition">' + (p.estado === 'Activa' ? '⏸️ Suspender' : '▶️ Reactivar') + '</button>'
       + '<button onclick="abrirDel(\'prop\',\'' + p.id + '\')" class="border border-rose-200 text-rose-600 hover:bg-rose-50 text-sm font-bold px-4 py-2.5 rounded-xl transition">🗑</button>' : '')
     + (rolAdmin() ? '<button onclick="irExportar(\'prop\',\'' + p.id + '\')" class="border border-slate-200 hover:border-emerald-400 text-sm font-bold px-4 py-2.5 rounded-xl transition" title="Exportar servicios">⬇️</button>' : '')
@@ -2256,7 +2256,7 @@ function vistaPropDetalle() {
 
 /** Suspende/reactiva la propiedad (persistente en Supabase). Solo Admin Oro. */
 async function togglePropEstado(id) {
-  if (!rolOro()) return;
+  if (!rolAdmin()) return;
   var p = propDe(id); if (!p) return;
   var newStatus = p.estado === 'Activa' ? 'Suspendida' : 'Activa';
 
@@ -2550,7 +2550,7 @@ function vistaCuadrillas() {
     + crumb([{ t: 'Inicio', fn: "ir('dashboard')" }, { t: 'Cuadrillas' }])
     + '<div class="flex items-start justify-between gap-3 flex-wrap">'
     + '<div><h1 class="text-2xl lg:text-3xl font-extrabold">Cuadrillas</h1><p class="text-slate-500 text-sm mt-1">' + crews.length + ' cuadrillas</p></div>'
-    + (rolOro() ? '<button onclick="formCuadrilla(null)" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-5 py-2.5 rounded-xl shadow transition active:scale-95 text-sm">＋ Nueva cuadrilla</button>' : '')
+    + (rolAdmin() ? '<button onclick="formCuadrilla(null)" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-5 py-2.5 rounded-xl shadow transition active:scale-95 text-sm">＋ Nueva cuadrilla</button>' : '')
     + '</div>'
     + '<div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">' + html + '</div></div>';
 }
@@ -2571,7 +2571,7 @@ function vistaCrewDetalle() {
     + '<div class="flex-1 min-w-0"><h1 class="text-xl font-extrabold">' + esc(c.nombre) + '</h1>'
     + '<p class="text-sm text-slate-500">' + esc(c.responsable || '—') + ' · ' + esc(c.ciudad) + '</p></div>'
     + '<div class="flex gap-2 flex-wrap">'
-    + (rolOro() ? '<button onclick="formCuadrilla(\'' + esc(c.nombre) + '\')" class="border border-slate-200 hover:border-sky-400 text-sm font-bold px-4 py-2.5 rounded-xl transition">✏️ Editar</button>'
+    + (rolAdmin() ? '<button onclick="formCuadrilla(\'' + esc(c.nombre) + '\')" class="border border-slate-200 hover:border-sky-400 text-sm font-bold px-4 py-2.5 rounded-xl transition">✏️ Editar</button>'
       + '<button onclick="abrirDel(\'crew\',\'' + esc(c.nombre) + '\')" class="border border-rose-200 text-rose-600 hover:bg-rose-50 text-sm font-bold px-4 py-2.5 rounded-xl transition">🗑</button>' : '')
     + '<button onclick="formRutaCrew(\'' + esc(c.nombre) + '\')" class="bg-sky-600 hover:bg-sky-700 text-white text-sm font-bold px-4 py-2.5 rounded-xl shadow transition active:scale-95">🗺️＋ Jornada</button>'
     + (rolAdmin() ? '<button onclick="irExportar(\'cuad\',\'' + esc(c.nombre) + '\')" class="border border-slate-200 hover:border-emerald-400 text-sm font-bold px-4 py-2.5 rounded-xl transition" title="Exportar servicios">⬇️</button>' : '')
@@ -2581,7 +2581,7 @@ function vistaCrewDetalle() {
     + '</div></div>'
     + '<div class="grid lg:grid-cols-2 gap-5">'
     + '<div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-5"><div class="flex items-center justify-between gap-2 mb-3"><h3 class="font-extrabold">🏢 Propiedades asignadas (' + listP.length + ')</h3>'
-    + (rolOro() ? '<button onclick="abrirAsignarPropCrew(\'' + esc(c.nombre) + '\')" class="text-xs font-bold bg-sky-600 text-white px-3 py-1.5 rounded-lg hover:bg-sky-700 transition active:scale-95">➕ Asignar Propiedad</button>' : '') + '</div>'
+    + (rolAdmin() ? '<button onclick="abrirAsignarPropCrew(\'' + esc(c.nombre) + '\')" class="text-xs font-bold bg-sky-600 text-white px-3 py-1.5 rounded-lg hover:bg-sky-700 transition active:scale-95">➕ Asignar Propiedad</button>' : '') + '</div>'
     + (listP.length ? listP.map(function (p) {
       return '<button onclick="verPropiedad(\'' + p.id + '\', \'cuadrilla_detalle\', \'' + esc(c.nombre) + '\')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-sky-50 transition text-left border border-slate-100 mb-2">'
         + '<div class="flex-1 min-w-0"><p class="text-sm font-semibold truncate">' + esc(p.nombre) + '</p><p class="text-[11px] text-slate-400">' + esc(p.ciudad) + '</p></div>'
@@ -2622,7 +2622,7 @@ function vistaCrewForm() {
  * hace falta: todos guardan crew_id (FK), que no cambia.
  */
 async function guardarCrew() {
-  if (!rolOro()) return;
+  if (!rolAdmin()) return;
   var n = $('cfNombre').value.trim();
   if (!n) { toast('⚠️ El nombre es obligatorio'); return; }
   var c = estado.param ? crewDe(estado.param) : null;
@@ -3346,7 +3346,7 @@ async function abrirDelServicio(sid) {
 /* ── 16.d MODAL: ASIGNAR CUADRILLA (rápido) ── */
 
 function abrirAsignarCua(propId, fechaIso) {
-  if (!rolOro()) return;
+  if (!rolAdmin()) return;
   var p = propDe(propId);
   if (!p) return;
   ASIGN_PROP = propId;
@@ -3504,7 +3504,7 @@ async function confirmarAsignacionFinal() {
 /* ── 16.f MODAL: ASIGNAR PROPIEDAD A CUADRILLA (buscador) ── */
 
 function abrirAsignarPropCrew(crewName) {
-  if (!rolOro()) return;
+  if (!rolAdmin()) return;
   ASIGN_CREW = crewName;
   $('apcCrewName').textContent = 'A cuadrilla: ' + crewName;
   $('apcBuscar').value = '';
@@ -3533,7 +3533,7 @@ function refrescarBusquedaPropsCrew(q) {
    Flujo: validar → modal de confirmación → respaldar (descarga + papelera)
    → borrar en Supabase (hijos primero, simulando CASCADE) → actualizar memoria. */
 async function abrirDel(tipo, id) {
-  if (!rolOro()) return;
+  if (!rolAdmin()) return;
   var titulo = '', info = '', respaldo = null, archivo = '';
   var hoy = fechaISO(new Date());
 
