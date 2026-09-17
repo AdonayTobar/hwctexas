@@ -608,8 +608,8 @@ var PALETA = {
 
 /** Estilos del badge de rol (avatar, menú móvil, etc.). */
 var ROL_ESTILO = {
-  'Admin Oro':   { badge: 'bg-amber-400 text-amber-950', ico: '🥇' },
-  'Admin Plata': { badge: 'bg-slate-300 text-slate-800', ico: '🥈' },
+  'Admin':       { badge: 'bg-amber-400 text-amber-950',  ico: '🥇' },
+  'Supervisor':  { badge: 'bg-violet-400 text-violet-950', ico: '🧑‍💼' },
   'Trabajador':  { badge: 'bg-sky-400 text-sky-950',     ico: '👷' }
 };
 
@@ -626,8 +626,8 @@ var MAX_JORNADAS_SEMANA = 10;
 
 /** Usuarios ficticios para probar los 3 roles sin login real. TODO(FASE 3): eliminar. */
 var USUARIOS_DEMO = [
-  { nombre: 'Ana García',      email: 'ana@demo.com',     rol: 'Admin Oro',   cuadrilla: '' },
-  { nombre: 'Roberto Méndez',  email: 'roberto@demo.com', rol: 'Admin Plata', cuadrilla: '' },
+  { nombre: 'Ana García',      email: 'ana@demo.com',     rol: 'Admin',       cuadrilla: '' },
+  { nombre: 'Roberto Méndez',  email: 'roberto@demo.com', rol: 'Supervisor',  cuadrilla: 'North Crew 3' },
   { nombre: 'Luis Hernández',  email: 'luis@demo.com',    rol: 'Trabajador',  cuadrilla: 'North Crew 3' }
 ];
 
@@ -839,11 +839,13 @@ function $(id) { return document.getElementById(id); }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
 /* ── Roles ── */
-function rolOro() { return USUARIO.rol === 'Admin Oro'; }
-function rolAdmin() { return USUARIO.rol === 'Admin Oro' || USUARIO.rol === 'Admin Plata'; }
+function rolAdmin() { return USUARIO.rol === 'Admin'; }
+function esSupervisor() { return USUARIO.rol === 'Supervisor'; }
 function esTrabajador() { return USUARIO.rol === 'Trabajador'; }
-/** Nombre de la cuadrilla del usuario trabajador ('' si no aplica). */
+/** Nombre de la cuadrilla del supervisor o trabajador ('' si no aplica). */
 function miCua() { return USUARIO.cuadrilla || ''; }
+/** Operadores: pueden registrar servicios en el campo */
+function esOperador() { return esSupervisor() || esTrabajador(); }
 
 /* ── Lógica de negocio ── */
 /** ¿La propiedad tiene servicio el día con esa letra? (ej. hasDia(p,'L')) */
@@ -900,25 +902,24 @@ function serviciosDe(propId, cua) {
 }
 
 /* ── Jornadas: progreso y permisos ── */
-/** Conteo de items por estado: {hechas, posp, pend, total}. */
-function progresoJornada(j) {
-  var h = 0, p = 0, x = 0;
-  j.items.forEach(function (i) { if (i.estado === 'Hecho') h++; else if (i.estado === 'Pospuesto') p++; else x++; });
-  return { hechas: h, posp: p, pend: x, total: j.items.length };
-}
-/** Rango legible de fechas de la jornada (maneja jornadas que cruzan de día). */
-function rangoFechas(j) { if (j.fechaFin && j.fechaFin !== j.fecha) return fmtDiaFecha(j.fecha) + ' → termina ' + fmtDiaFecha(j.fechaFin); return fmtDiaFecha(j.fecha); }
+/** Roles sobre jornadas: ver = admin o operador de esa cuadrilla. */
+function puedeVerJornada(j) { return rolAdmin() || (esOperador() && j.cuadrilla === miCua()); }
 
-/** Roles sobre jornadas: ver = admin o trabajador de esa cuadrilla. */
-function puedeVerJornada(j) { return rolAdmin() || (esTrabajador() && j.cuadrilla === miCua()); }
-/** Editar = admin, o trabajador que la creó y es de su cuadrilla. */
-function puedeEditarJornada(j) { return rolAdmin() || (esTrabajador() && j.creadaPorRol === 'Trabajador' && j.cuadrilla === miCua()); }
-/** Operar items (registrar/posponer) = admin o trabajador de la cuadrilla. */
-function puedeOperarJornada(j) { return rolAdmin() || (esTrabajador() && j.cuadrilla === miCua()); }
-/** Eliminar = Admin Oro siempre; trabajador solo si la creó, es su cuadrilla y no tiene avances. */
+/** Editar = admin, o operador si la creó él mismo, es de su cuadrilla y NO es automática del sistema. */
+function puedeEditarJornada(j) {
+  if (rolAdmin()) return true;
+  var esAutomatica = /^J-\d+$/.test(j.id); // Las del sistema usan IDs tipo J-0003
+  if (esOperador() && j.cuadrilla === miCua() && !esAutomatica && j.creadaPor === USUARIO.nombre) return true;
+  return false;
+}
+
+/** Operar items (registrar/posponer) = admin o operador de la cuadrilla. */
+function puedeOperarJornada(j) { return rolAdmin() || (esOperador() && j.cuadrilla === miCua()); }
+
+/** Eliminar = Admin siempre. Operador solo si la creó, es su cuadrilla y no tiene avances. */
 function puedeEliminarJornada(j) {
-  if (rolOro()) return true;
-  if (esTrabajador()) return j.creadaPor === USUARIO.nombre && j.cuadrilla === miCua() && progresoJornada(j).hechas === 0;
+  if (rolAdmin()) return true;
+  if (esOperador() && j.cuadrilla === miCua() && j.creadaPor === USUARIO.nombre && progresoJornada(j).hechas === 0 && !(/^J-\d+$/.test(j.id))) return true;
   return false;
 }
 
@@ -1470,13 +1471,13 @@ function renderApp() {
   else if (estado.vista === 'calendario') contentHtml = vistaCalendario();
   else if (estado.vista === 'propiedades') contentHtml = vistaPropiedades();
   else if (estado.vista === 'propiedad_detalle') contentHtml = vistaPropDetalle();
-  else if (estado.vista === 'propiedad_form') contentHtml = rolOro() ? vistaPropForm() : sinPermiso();
+  else if (estado.vista === 'propiedad_form') contentHtml = rolAdmin() ? vistaPropForm() : sinPermiso('Solo los Admins pueden crear o editar propiedades.');
   else if (estado.vista === 'cuadrillas') contentHtml = vistaCuadrillas();
   else if (estado.vista === 'cuadrilla_detalle') contentHtml = vistaCrewDetalle();
-  else if (estado.vista === 'cuadrilla_form') contentHtml = rolOro() ? vistaCrewForm() : sinPermiso();
+  else if (estado.vista === 'cuadrilla_form') contentHtml = rolAdmin() ? vistaCrewForm() : sinPermiso('Solo los Admins pueden gestionar cuadrillas.');
   else if (estado.vista === 'dia_detalle') contentHtml = vistaDiaDetalle();
-  else if (estado.vista === 'reportes') contentHtml = rolAdmin() ? vistaReportes() : sinPermiso('Los reportes solo están disponibles para administradores.');
-  else if (estado.vista === 'exportar') contentHtml = rolAdmin() ? vistaExportar() : sinPermiso('La exportación solo está disponible para administradores.');
+  else if (estado.vista === 'reportes') contentHtml = rolAdmin() ? vistaReportes() : sinPermiso('Los reportes generales solo están disponibles para administradores.');
+  else if (estado.vista === 'exportar') contentHtml = rolAdmin() ? vistaExportar() : sinPermiso('La exportación de Excel solo está disponible para administradores.');
   else contentHtml = '<p>Vista no encontrada.</p>';
 
   /* 4. Inyectar HTML (botón volver + contenido) */
@@ -2127,7 +2128,7 @@ function propCard(p) {
     + '<div class="flex items-center gap-1.5 flex-wrap">' + chipServ(p.servicio) + chipCuad(p.cuadrilla, true) + asignBtn + '</div>'
     + '<div class="flex items-center justify-between gap-2 mt-auto pt-2 border-t border-slate-100">'
     + '<div class="flex gap-1">' + diasBadges(p, true) + '</div>'
-    + '<p class="text-xs font-bold text-slate-500">' + fmtMon(calcMensual(p)) + '/mes</p></div>'
+    + (rolAdmin() ? '<p class="text-xs font-bold text-slate-500">' + fmtMon(calcMensual(p)) + '/mes</p>' : '<span class="text-xs text-slate-400 italic">Costo oculto</span>') + '</div>'
     + '</div>';
 }
 
@@ -2155,10 +2156,10 @@ function vistaPropDetalle() {
   }
   crumbs.push({ t: p.nombre });
 
-  var svcs = serviciosDe(p.id);
+  var svcs = serviciosDe(p.id, esOperador() ? miCua() : '');
   var prox = proximosServicios(p, 10);
-  var puedeOp = rolAdmin() || p.cuadrilla === miCua();
-  var asignBtn = rolOro() ? '<button onclick="abrirAsignarCua(\'' + p.id + '\')" class="border border-slate-200 hover:border-sky-400 text-sm font-bold px-4 py-2.5 rounded-xl transition" title="Asignar/Cambiar cuadrilla">⚙️ Cuadrilla</button>' : '';
+  var puedeOp = esOperador() && p.cuadrilla === miCua(); // Para registrar servicio
+  var asignBtn = rolAdmin() ? '<button onclick="abrirAsignarCua(\'' + p.id + '\')" class="border border-slate-200 hover:border-sky-400 text-sm font-bold px-4 py-2.5 rounded-xl transition" title="Asignar/Cambiar cuadrilla">⚙️ Cuadrilla</button>' : '';
 
   function info(label, val) { return '<div><p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">' + label + '</p><p class="text-sm font-semibold mt-0.5">' + val + '</p></div>'; }
 
@@ -3869,9 +3870,17 @@ async function inicializarApp() {
 
     // TODO(FASE 3): reemplazar por el perfil real del usuario autenticado
     // (SELECT profiles WHERE id = session.user.id → nombre, rol, cuadrilla)
-    USUARIO = USUARIOS_DEMO[0];
+        // TODO(FASE 3): resuelto. Trae el perfil real desde Supabase
+    const { data: profile } = await DB.from('profiles').select('*, crews(name)').eq('id', session.user.id).single();
+    USUARIO = {
+      nombre: profile?.nombre || session.user.email,
+      email: session.user.email,
+      rol: profile?.rol || 'Trabajador',
+      cuadrilla: profile?.crews?.name || ''
+    };
 
     await cargarDatosSupabase(); // espera a que lleguen los datos de la nube
+
     renderApp();
   } else {
     $('loginOverlay').classList.remove('hidden');
