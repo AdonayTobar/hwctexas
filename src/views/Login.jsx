@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useI18n } from '../i18n/LanguageContext';
+import logo from '../logo.png';
 
 export default function Login() {
     const { t, lang, changeLanguage } = useI18n();
@@ -51,7 +52,7 @@ export default function Login() {
 
                     {/* Branding */}
                     <div className="bg-gradient-to-br from-sky-500 to-cyan-600 p-8 text-center text-white">
-                        <img src="/logo.png" alt="HWC Limpieza" className="w-16 h-16 mx-auto rounded-2xl shadow-lg mb-3 object-cover" />
+                        <img src={logo} alt="HWC Limpieza" className="w-16 h-16 mx-auto rounded-2xl shadow-lg mb-3 object-cover" />
                         <h2 className="text-2xl font-extrabold tracking-tight">HWC Limpieza</h2>
                         <p className="text-sky-100 text-sm mt-1">{t('login.subtitulo')}</p>
                     </div>

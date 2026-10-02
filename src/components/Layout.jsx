@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useI18n } from '../i18n/LanguageContext';
 import { useData } from '../context/DataContext';
+import logo from '../logo.png';
 
 export default function Layout({ profile, currentView, navigate, children }) {
     const { t, td, lang, changeLanguage } = useI18n();
@@ -36,7 +37,7 @@ export default function Layout({ profile, currentView, navigate, children }) {
             {/* SIDEBAR ESCRITORIO */}
             <aside className={`hidden lg:flex fixed inset-y-0 left-0 bg-slate-900 text-white z-30 flex-col transition-all duration-200 ${sidebarCollapsed ? 'w-[76px]' : 'w-64'}`}>
                 <div className="flex items-center gap-3 px-4 py-5">
-                    <img src="/logo.png" alt="HWC Logo" className="w-10 h-10 shrink-0 rounded-xl shadow-lg object-cover" />
+                    <img src={logo} alt="HWC Logo" className="w-10 h-10 shrink-0 rounded-xl shadow-lg object-cover" />
                     {!sidebarCollapsed && (
                         <div className="min-w-0">
                             <p className="font-extrabold leading-tight">HWC</p>
@@ -115,7 +116,7 @@ export default function Layout({ profile, currentView, navigate, children }) {
                 <div className="lg:hidden fixed inset-0 z-[90] bg-slate-900 text-white flex flex-col">
                     <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
                         <div className="flex items-center gap-3">
-                            <img src="/logo.png" alt="HWC Logo" className="w-10 h-10 rounded-xl shadow-lg object-cover" />
+                            <img src={logo} alt="HWC Logo" className="w-10 h-10 rounded-xl shadow-lg object-cover" />
                             <div>
                                 <p className="font-extrabold leading-tight">HWC</p>
                                 <p className="text-[11px] text-slate-400">Limpieza · Texas</p>
