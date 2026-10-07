@@ -4,6 +4,7 @@ import { useData } from '../context/DataContext';
 import { useI18n } from '../i18n/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import { fechaISO, inicioDeSemanaISO } from '../lib/helpers';
+import DeleteReportModal from '../components/DeleteReportModal';
 
 const PALETA = {
     'Azul': { chip: 'bg-sky-100 text-sky-800', dot: 'bg-sky-500' },
@@ -22,7 +23,10 @@ export default function Reports({ profile, navigate }) {
     const { props, crews, servicios, esReporte, estaLeido, getPendientesRep, marcarLeido, marcarTodosLeidos } = useData();
     const { showToast } = useToast();
 
-    const [filtros, setFiltros] = useState({ periodo: 'hoy', cuadrilla: '', estadoF: '', lectura: 'todos' }); // Default a 'todos'
+    const [showDelModal, setShowDelModal] = useState(false);
+    const [activeReport, setActiveReport] = useState(null);
+
+    const [filtros, setFiltros] = useState({ periodo: 'hoy', cuadrilla: '', estadoF: '', lectura: 'todos' });
 
     const arrFiltrado = useMemo(() => {
         const hoy = fechaISO(new Date());
@@ -37,12 +41,11 @@ export default function Reports({ profile, navigate }) {
         if (filtros.lectura === 'pendientes') arr = arr.filter(s => !estaLeido(s, profile?.nombre));
         else if (filtros.lectura === 'leidos') arr = arr.filter(s => estaLeido(s, profile?.nombre));
 
-        // Ordenar: No leídos arriba, luego por fecha más reciente
         return arr.sort((a, b) => {
             const aLeido = estaLeido(a, profile?.nombre);
             const bLeido = estaLeido(b, profile?.nombre);
-            if (aLeido !== bLeido) return aLeido ? 1 : -1; // No leídos primero
-            return b.ts - a.ts; // Más recientes primero
+            if (aLeido !== bLeido) return aLeido ? 1 : -1;
+            return b.ts - a.ts;
         });
     }, [servicios, filtros, profile]);
 
@@ -137,6 +140,13 @@ export default function Reports({ profile, navigate }) {
                                             }`}>
                                             {s.estado === 'Completado' ? '✓' : s.estado === 'Pospuesto' ? '⏩' : s.estado === 'Reporte' ? '📝' : '✕'} {t('estadoServ.' + s.estado)}
                                         </span>
+                                        {profile?.rol === 'Admin' && (
+                                            <button
+                                                onClick={() => { setActiveReport(s.id); setShowDelModal(true); }}
+                                                title="Eliminar reporte"
+                                                className="text-slate-300 hover:text-rose-600 text-sm font-bold p-1 rounded-lg hover:bg-rose-50 transition"
+                                            >🗑️</button>
+                                        )}
                                     </div>
                                 </div>
 
@@ -164,6 +174,14 @@ export default function Reports({ profile, navigate }) {
                     })}
                 </div>
             )}
+
+            {/* Modal de Eliminar Reporte */}
+            <DeleteReportModal
+                isOpen={showDelModal}
+                onClose={() => setShowDelModal(false)}
+                reportId={activeReport}
+                profile={profile}
+            />
         </div>
     );
 }

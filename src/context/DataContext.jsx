@@ -60,7 +60,7 @@ export function DataProvider({ children }) {
         }));
         setJornadas(jornadasMapped);
 
-        const servsData = await fetchAll('services', '*');
+        const servsData = await fetchAll('services', '*').then(data => data.filter(s => !s.deleted_at));
         const servsMapped = (servsData || []).map(s => ({
             id: s.id, propId: s.property_id, fecha: s.fecha, estado: s.status,
             cuadrilla: crewsMapped.find(c => c.id === s.crew_id)?.nombre || '',
@@ -91,6 +91,17 @@ export function DataProvider({ children }) {
         setProps(prev => prev.filter(p => p.id !== propId));
         setServicios(prev => prev.filter(s => s.propId !== propId));
         setJornadas(prev => prev.map(j => ({ ...j, items: j.items.filter(it => it.propId !== propId) })));
+    };
+
+    // Función para archivar (borrar lógicamente) un reporte
+    const eliminarReporte = async (servId, userName) => {
+        const { error } = await supabase.from('services').update({
+            deleted_by: userName,
+            deleted_at: new Date().toISOString()
+        }).eq('id', servId);
+        if (error) throw error;
+        // Lo quitamos de la memoria de React para que desaparezca de la vista al instante
+        setServicios(prev => prev.filter(s => s.id !== servId));
     };
     const guardarPropiedad = async (data, propId) => {
         const payload = {
@@ -235,7 +246,7 @@ export function DataProvider({ children }) {
             asignarCuadrillaPropiedad, asignarCuadrillaFecha,
             guardarCuadrilla, eliminarCuadrilla,
             jornadasVirtuales, setJornadasVirtuales,
-            leidos, esReporte, estaLeido, getPendientesRep, marcarLeido, marcarTodosLeidos
+            leidos, esReporte, estaLeido, getPendientesRep, marcarLeido, marcarTodosLeidos, eliminarReporte
         }}>
             {children}
         </DataContext.Provider>
