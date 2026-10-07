@@ -18,6 +18,9 @@ const PALETA = {
     'Verde': { chip: 'bg-emerald-100 text-emerald-800', dot: 'bg-emerald-500' }
 };
 
+// Función mágica para quitar acentos y mayúsculas
+const normalizeStr = (str) => (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
 export default function Reports({ profile, navigate }) {
     const { t, tf } = useI18n();
     const { props, crews, servicios, esReporte, estaLeido, getPendientesRep, marcarLeido, marcarTodosLeidos } = useData();
@@ -25,6 +28,7 @@ export default function Reports({ profile, navigate }) {
 
     const [showDelModal, setShowDelModal] = useState(false);
     const [activeReport, setActiveReport] = useState(null);
+    const [search, setSearch] = useState('');
 
     const [filtros, setFiltros] = useState({ periodo: 'hoy', cuadrilla: '', estadoF: '', lectura: 'todos' });
 
@@ -41,13 +45,29 @@ export default function Reports({ profile, navigate }) {
         if (filtros.lectura === 'pendientes') arr = arr.filter(s => !estaLeido(s, profile?.nombre));
         else if (filtros.lectura === 'leidos') arr = arr.filter(s => estaLeido(s, profile?.nombre));
 
+        // Lógica del buscador dinámico (ignora acentos y mayúsculas)
+        if (search) {
+            const q = normalizeStr(search);
+            arr = arr.filter(s => {
+                const p = props.find(x => x.id === s.propId);
+                const propName = normalizeStr(p?.nombre);
+                const propId = normalizeStr(p?.id);
+                const notes = normalizeStr(s.notas);
+                const creator = normalizeStr(s.por);
+                const status = normalizeStr(s.estado);
+                const crewName = normalizeStr(s.cuadrilla);
+
+                return propName.includes(q) || propId.includes(q) || notes.includes(q) || creator.includes(q) || status.includes(q) || crewName.includes(q);
+            });
+        }
+
         return arr.sort((a, b) => {
             const aLeido = estaLeido(a, profile?.nombre);
             const bLeido = estaLeido(b, profile?.nombre);
             if (aLeido !== bLeido) return aLeido ? 1 : -1;
             return b.ts - a.ts;
         });
-    }, [servicios, filtros, profile]);
+    }, [servicios, filtros, profile, search, props]);
 
     const pendientes = getPendientesRep(profile?.nombre);
 
@@ -101,6 +121,15 @@ export default function Reports({ profile, navigate }) {
                     </select>
                 </div>
 
+                {/* Buscador dinámico */}
+                <input
+                    type="text"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder={t('rep.buscarPh')}
+                    className="w-full min-w-0 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-500 transition"
+                />
+
                 {filtros.lectura !== 'leidos' && arrFiltrado.some(s => !estaLeido(s, profile?.nombre)) && (
                     <button onClick={handleMarcarTodos} className="w-full bg-sky-50 border border-sky-200 text-sky-700 font-bold text-sm py-2.5 rounded-xl hover:bg-sky-100 transition">
                         {tf('rep.marcarTodos', { n: arrFiltrado.filter(s => !estaLeido(s, profile?.nombre)).length })}
@@ -135,8 +164,8 @@ export default function Reports({ profile, navigate }) {
                                     </div>
                                     <div className="flex items-center gap-1 shrink-0">
                                         <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${s.estado === 'Completado' ? 'bg-emerald-100 text-emerald-700' :
-                                            s.estado === 'Pospuesto' ? 'bg-amber-100 text-amber-700' :
-                                                s.estado === 'Reporte' ? 'bg-sky-100 text-sky-700' : 'bg-rose-100 text-rose-700'
+                                                s.estado === 'Pospuesto' ? 'bg-amber-100 text-amber-700' :
+                                                    s.estado === 'Reporte' ? 'bg-sky-100 text-sky-700' : 'bg-rose-100 text-rose-700'
                                             }`}>
                                             {s.estado === 'Completado' ? '✓' : s.estado === 'Pospuesto' ? '⏩' : s.estado === 'Reporte' ? '📝' : '✕'} {t('estadoServ.' + s.estado)}
                                         </span>

@@ -312,6 +312,7 @@ export const translations = {
         'toast.repArchivado': '🗑️ Reporte archivado correctamente',
         'err.archivarRep': '❌ Error al archivar el reporte',
         'rep.eliminarTitle': 'Eliminar reporte',
+        'rep.buscarPh': '🔍 Buscar por propiedad, notas, autor o estado...',
 
     },
     en: {
@@ -581,6 +582,7 @@ export const translations = {
         'toast.repArchivado': '🗑️ Report archived successfully',
         'err.archivarRep': '❌ Failed to archive report',
         'rep.eliminarTitle': 'Delete report',
+        'rep.buscarPh': '🔍 Search by property, notes, author or status...',
     }
 };
 
