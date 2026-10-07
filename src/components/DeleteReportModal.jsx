@@ -33,11 +33,11 @@ export default function DeleteReportModal({ isOpen, onClose, reportId, profile }
 
             // 2. Si la contraseña es correcta, archivamos el reporte
             await eliminarReporte(reportId, profile.nombre);
-            showToast('🗑️ Reporte archivado correctamente');
+            showToast(t('toast.repArchivado'));
             onClose();
         } catch (err) {
             console.error(err);
-            showToast('❌ Error al archivar el reporte');
+            showToast(t('err.archivarRep'));
         }
         setLoading(false);
     };
@@ -47,12 +47,12 @@ export default function DeleteReportModal({ isOpen, onClose, reportId, profile }
             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose}></div>
             <div className="relative bg-white rounded-3xl w-full max-w-md pop max-h-[92vh] overflow-y-auto p-5 sm:p-6 space-y-4 min-w-0">
                 <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-4 min-w-0">
-                    <h3 className="font-extrabold text-lg leading-tight text-rose-600">🗑️ Eliminar Reporte</h3>
+                    <h3 className="font-extrabold text-lg leading-tight text-rose-600">{t('delRep.titulo')}</h3>
                     <button onClick={onClose} className="w-9 h-9 shrink-0 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 text-xl transition">✕</button>
                 </div>
 
                 <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 text-sm text-rose-700">
-                    Este reporte se archivará. Se guardará un registro de quién y cuándo lo eliminó, pero desaparecerá de la vista principal.
+                    {t('delRep.aviso')}
                 </div>
 
                 <div>
@@ -73,7 +73,7 @@ export default function DeleteReportModal({ isOpen, onClose, reportId, profile }
                         disabled={loading}
                         className="bg-rose-600 hover:bg-rose-700 text-white font-bold px-6 py-2.5 rounded-xl shadow transition active:scale-95 disabled:opacity-50"
                     >
-                        {loading ? 'Archivando...' : 'Archivar Reporte'}
+                        {loading ? t('delRep.cargando') : t('delRep.btn')}
                     </button>
                 </div>
             </div>

@@ -305,6 +305,13 @@ export const translations = {
         'costoTipo.Por semana': 'Por semana',
         'costoTipo.Por vez': 'Por vez',
         'prop.fCuadrilla': 'Cuadrilla (Buscar y seleccionar)',
+        'delRep.titulo': '🗑️ Eliminar Reporte',
+        'delRep.aviso': 'Este reporte se archivará. Se guardará un registro de quién y cuándo lo eliminó, pero desaparecerá de la vista principal.',
+        'delRep.btn': 'Archivar Reporte',
+        'delRep.cargando': 'Archivando...',
+        'toast.repArchivado': '🗑️ Reporte archivado correctamente',
+        'err.archivarRep': '❌ Error al archivar el reporte',
+        'rep.eliminarTitle': 'Eliminar reporte',
 
     },
     en: {
@@ -567,6 +574,13 @@ export const translations = {
         'costoTipo.Por semana': 'Per week',
         'costoTipo.Por vez': 'Per visit',
         'prop.fCuadrilla': 'Crew (search and select)',
+        'delRep.titulo': '🗑️ Delete Report',
+        'delRep.aviso': 'This report will be archived. A record of who and when it was deleted will be kept, but it will disappear from the main view.',
+        'delRep.btn': 'Archive Report',
+        'delRep.cargando': 'Archiving...',
+        'toast.repArchivado': '🗑️ Report archived successfully',
+        'err.archivarRep': '❌ Failed to archive report',
+        'rep.eliminarTitle': 'Delete report',
     }
 };
 

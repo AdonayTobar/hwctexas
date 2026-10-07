@@ -135,15 +135,15 @@ export default function Reports({ profile, navigate }) {
                                     </div>
                                     <div className="flex items-center gap-1 shrink-0">
                                         <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${s.estado === 'Completado' ? 'bg-emerald-100 text-emerald-700' :
-                                                s.estado === 'Pospuesto' ? 'bg-amber-100 text-amber-700' :
-                                                    s.estado === 'Reporte' ? 'bg-sky-100 text-sky-700' : 'bg-rose-100 text-rose-700'
+                                            s.estado === 'Pospuesto' ? 'bg-amber-100 text-amber-700' :
+                                                s.estado === 'Reporte' ? 'bg-sky-100 text-sky-700' : 'bg-rose-100 text-rose-700'
                                             }`}>
                                             {s.estado === 'Completado' ? '✓' : s.estado === 'Pospuesto' ? '⏩' : s.estado === 'Reporte' ? '📝' : '✕'} {t('estadoServ.' + s.estado)}
                                         </span>
                                         {profile?.rol === 'Admin' && (
                                             <button
                                                 onClick={() => { setActiveReport(s.id); setShowDelModal(true); }}
-                                                title="Eliminar reporte"
+                                                title={t('rep.eliminarTitle')}
                                                 className="text-slate-300 hover:text-rose-600 text-sm font-bold p-1 rounded-lg hover:bg-rose-50 transition"
                                             >🗑️</button>
                                         )}
